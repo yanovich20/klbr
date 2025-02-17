@@ -7,6 +7,7 @@ use Bitrix\Main\Application;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Context;
 use KLBR\QuickOrderTable;
+use \Bitrix\Main\Type\DateTime as DT;
 use Bitrix\Main\Grid\Options as GridOptions;
 use Bitrix\Main\UI\PageNavigation;
 
@@ -23,6 +24,15 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
                         array(HttpMethod::METHOD_POST)
                     ),
                     new Csrf(),
+                ], 
+                'postfilters' => []
+            ],
+            'changeOrderStatus'=> [  
+                'prefilters' => [
+                    new HttpMethod(
+                        array(HttpMethod::METHOD_POST)
+                    ),
+                    new Csrf(),
                 ],
                 'postfilters' => []
             ],
@@ -30,9 +40,23 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
     }
     public function addQuickOrderAction($action){
         $this->checkModules();
-        
-        $addResult = QuickOrderTable::add($_POST);
-        if($addResult->isSuccess())
+        $data = $_POST;
+        $data["UF_DATE"] = new DT();
+        $data["UF_STATUS"]="Новый";
+        $addResult = QuickOrderTable::add($data);
+        if($addResult->getId())
+        {
+            
+        }
+        return $this-> returnResult($addResult);
+    }
+    public function changeOrderStatusAction($action){
+        $id = $_POST["ID"];
+        $updateResult = QuickOrderTable::update($id,["UF_STATUS"=>"Обработанный"]);
+        return $this->returnResult($updateResult);
+    }
+    private function returnResult($result){
+        if($result->isSuccess())
             return json_encode(["status"=>"success"]);
         else
         {
@@ -82,8 +106,39 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
         
         if($filterData['UF_PHONE'])
             $mainFilter['UF_PHONE'] = $filterData['UF_PHONE'];
+
         if($filterData['UF_COMMENT'])
             $mainFilter['UF_COMMENT'] = $filterData['UF_COMMENT'];
+
+        if($filterData['UF_DATE'][0]){
+            $format = "Y-m-d H:i:s";
+            $today = date($format);
+            $interval = 0;
+        
+            switch ($filterData['UF_DATE'][0]){
+                case '1':
+                    $interval = 7;
+                    break;
+                case '2':
+                    $interval = 14;
+                    break;
+                case '3':
+                    $interval = 30;
+                    break;
+                case '4':
+                    $interval = 60;
+                    break;
+                case '5':
+                    $interval = 180;
+                    break;
+            }
+        
+            $data = (new \DateTime($today))->modify("-". $interval ." day");
+            $mainFilter['>UF_DATE'] = DT::createFromTimestamp(strtotime($data->format('Y-m-d')));
+            }
+
+        if($filterData['UF_STATUS'])
+            $mainFilter['UF_STATUS'] = $filterData['UF_STATUS'];
 
         $grid_options = new GridOptions($this->arParams["GRID_ID"]);
         $sort = $grid_options->GetSorting(['sort' => ['ID' => 'DESC'], 'vars' => ['by' => 'by', 'order' => 'order']]);
@@ -100,7 +155,7 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
             $nav_params['iNumPage'] = $nav->getCurrentPage();
     
         $getListOptions = array(
-            "select" => ['ID', "UF_EMAIL", 'UF_NAME', 'UF_PHONE',"UF_COMMENT"],
+            "select" => ['ID', "UF_EMAIL", 'UF_NAME', 'UF_PHONE',"UF_COMMENT","UF_DATE","UF_STATUS"],
             "order" => ["ID" => "DESC"],
             "filter" => $mainFilter,
             'limit' => $nav_params['nPageSize'],
@@ -123,7 +178,16 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
                     "NAME" => $row['UF_NAME'],
                     "PHONE" => $row['UF_PHONE'],
                     "COMMENT" => $row['UF_COMMENT'],
+                    "DATE"=>$row["UF_DATE"],
+                    "STATUS"=>$row["UF_STATUS"]
                 ],
+                'actions' => [
+                    [
+                'text' => 'Сменить статус',
+                'default' => true,
+                'onclick' =>'setOrderStatus('.$row["ID"].',"'.$this->arParams["GRID_ID"].'")'
+                    ]
+                ]
             ];
         }
     $this->arResult["ROWS"] = $list;

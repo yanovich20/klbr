@@ -42,7 +42,15 @@ class QuickOrderTable extends \Bitrix\Main\Entity\DataManager
             'UF_COMMENT'=>array(
                 'data_type' => 'text',
 				'title' => 'Комментарий',
-                )
+			),
+			"UF_DATE"=>array(
+				'data_type' => 'date',
+				'title'=>"Дата создания"
+			),
+			"UF_STATUS"=>array(
+				'data_type'=>'text',
+				'title'=>'Статус'
+			)
 		);
 	}
 }
