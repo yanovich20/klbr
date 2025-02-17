@@ -46,7 +46,7 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
         $addResult = QuickOrderTable::add($data);
         if($addResult->getId())
         {
-            
+            \CEvent::Send("NEW_QUICK_ORDER","s1", $data);
         }
         return $this-> returnResult($addResult);
     }

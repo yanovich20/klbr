@@ -52,11 +52,52 @@ var $MODULE_CSS;
     $eventManager = \Bitrix\Main\EventManager::getInstance(); 
     $eventManager->registerEventHandler("main","onProlog","klbr","\\KLBR\\PrologEventHandler","onPrologEventHandler");
     $eventManager->registerEventHandler("main","onBuildGlobalMenu","klbr","\\KLBR\\BuildGlobalMenuHandler","onBuildGlobalMenuHandler");
-  }
+    $obEventType = new CEventType;
+    $obEventType->Add(array(
+      "EVENT_NAME"    => "NEW_QUICK_ORDER",
+      "NAME"          => "Новый быстрый заказ",
+      "LID"           => "ru",
+      "DESCRIPTION"   => "
+        #ID# - ID баннера
+        #UF_DATE# - Дата заказа
+        #UF_STATUS# - Статус заказа
+        #UF_NAME# - Название организации
+        #UF_EMAIL#- email
+        #UF_PHONE#- Телефон
+        #UF_COMMENT# -Комментарий
+        "
+      ));
+    $admin = \Bitrix\Main\UserTable::getList(["filter"=>array("LOGIN"=>"admin"),"select"=>array("ID","EMAIL")])->fetch();
+    $arr["ACTIVE"]      = "Y";
+    $arr["EVENT_NAME"]  = "NEW_QUICK_ORDER";
+    $arr["LID"]         = array("s1");
+    $arr["EMAIL_FROM"]  = "admin@site.ru";
+    $arr["EMAIL_TO"]    = $admin["EMAIL"];
+    $arr["BCC"]         = "";
+    $arr["SUBJECT"]     = "Добавлен быстрый заказ #ID#";
+    $arr["BODY_TYPE"]   = "text";
+    $arr["MESSAGE"]     = "
+    Внимание! Создан новый быстрый заказ с # #ID#.
+    Имя - #UF_NAME#
+    Дата - #UF_DATE#
+    Email - #UF_EMAIL#
+    Телефон   #UF_PHONE#
+    Комментарий - #UF_COMMENT#
+    ";
+    $obTemplate = new CEventMessage;
+    $obTemplate->Add($arr);
+      }
   function unInstallEvents()
   {
     $eventManager = \Bitrix\Main\EventManager::getInstance(); 
     $eventManager->unRegisterEventHandler("main","onProlog","klbr","\\KLBR\\PrologEventHandler","onPrologEventHandler");
     $eventManager->unRegisterEventHandler("main","onBuildGlobalMenu","klbr","\\KLBR\\BuildGlobalMenuHandler","onBuildGlobalMenuHandler");
+    $arFilter = Array(
+      "TYPE_ID"       => array("NEW_QUICK_ORDER"),
+    );
+    $rsMess = CEventMessage::GetList($by="site_id", $order="desc", $arFilter);
+    $message =$rsMess->GetNext();
+    CEventMessage::Delete($message["ID"]);
+    CEventType::Delete("NEW_QUICK_ORDER");
   }
 }
