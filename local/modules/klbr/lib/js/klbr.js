@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded",function(){
-    console.log("hello world!");
     const containerForButton = document.querySelector(".product-item-detail-pay-block");
     if(!containerForButton)
         return false;
@@ -56,9 +55,30 @@ document.addEventListener("DOMContentLoaded",function(){
                         "UF_EMAIL":email.value,
                         "UF_COMMENT":comment.value
                     };
+                    try{
                     response = await BX.ajax.runComponentAction("klbr:grid","addQuickOrder",{mode:'class',data:data});
+                    }
+                    catch(errorResult)
+                    {
+                        if(errorResult.status=="error")
+                        {
+                            messageToDisplay = "";
+                            errorResult.errors.forEach(function(errorObject){
+                                messageToDisplay += " " + errorObject.message;
+                            })
+                            showMessage(messageToDisplay);
+                            return;
+                        }
+                    }
                     console.log(response);
-                      this.popupWindow.close();
+                    
+                    if(response.status==="error" && response.data.status=="error")
+                    {
+                        showMessage(response.data.message);
+                        return;
+                    }
+                    showMessage("Данные сохранены");
+                    this.popupWindow.close();
                    }}
                 }),
                 new BX.PopupWindowButton({
@@ -71,38 +91,21 @@ document.addEventListener("DOMContentLoaded",function(){
              ]
         });
         popup.show();
-        var options =  {
-            onComplete: function(cep) {
-              alert('CEP Completed!:' + cep);
-            },
-            onKeyPress: function(cep, event, currentField, options){
-              console.log('A key was pressed!:', cep, ' event: ', event,
-                          'currentField: ', currentField, ' options: ', options);
-            },
-            onChange: function(cep){
-              console.log('cep changed! ', cep);
-            },
-            onInvalid: function(val, e, f, invalid, options){
-                console.log("error");
-              var error = invalid[0];
-              console.log ("Digit: ", error.v, " is invalid for the position: ", error.p, ". We expect something like: ", error.e);
-            }
-          };
-        
+
         const container = document.querySelector(".modal-container");
         const email = container.querySelector("[name='EMAIL']");
         const name = container.querySelector("[name='NAME']");
         const phone = container.querySelector("[name='PHONE']");
         const comment = container.querySelector("[name='COMMENT']");
+
         email.addEventListener("change",function(){
              checkEmailHandler(email);
         })
-       // phone.addEventListener("change",function(){
-       //     checkPhoneHandler(phone);
-        //})
+       
         name.addEventListener("change",function(){
             checkNameHandler(name);
         })
+
         $.fn.setCursorPosition = function(pos) {
             if ($(this).get(0).setSelectionRange) {
               $(this).get(0).setSelectionRange(pos, pos);
@@ -121,20 +124,17 @@ document.addEventListener("DOMContentLoaded",function(){
     })
     function checkNameHandler(name,message="Неверное название!"){
         if(!checkName(name.value)){
-            //alert("Неверное название!");
             setError(name,message);
             return false;
         }
         else
         {
-            console.log(name);
             resetError(name);
             return true;
         }
     }
     function checkPhoneHandler(phone, message="Неверный номер телефона!"){
         if(!checkPhone(phone.value)){
-            //alert("Неверный номер телефона!");
             setError(phone,message);
             return false;
         }
@@ -161,7 +161,6 @@ document.addEventListener("DOMContentLoaded",function(){
     }
     function checkPhone(value){
         let clearPhone = value.replace(/\D/g,"");
-        console.log(clearPhone);
         const regex = /^[0-9]{11}$/;
         return regex.test(clearPhone);
     }
@@ -179,14 +178,13 @@ document.addEventListener("DOMContentLoaded",function(){
         showMessage(message);
     }
     function resetError(node){
-        console.log(node);
         node.classList.remove("error");
     }
     function showMessage(message){
         const messageBox = new BX.UI.Dialogs.MessageBox(
             {
                 message: message,
-                title: "Подтверждение удаления",
+                title: "Информационное сообщение",
                 buttons: BX.UI.Dialogs.MessageBoxButtons.OK,
                 okCaption: "OK",
             });

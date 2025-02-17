@@ -1,50 +1,10 @@
 data:
 Array
 (
-    [UF_NAME] => Должность
-    [UF_PHONE] => +73333333333
-    [UF_EMAIL] => email@mail.ru
-    [UF_COMMENT] => Все отлично
-)
-
-
-data:
-Array
-(
-    [UF_NAME] => Название
-    [UF_PHONE] => +71111111111
-    [UF_EMAIL] => email@mail.ru
-    [UF_COMMENT] => Все нормально
-)
-
-
-data:
-Array
-(
-    [UF_NAME] => Названиеорганизации
+    [UF_NAME] => Название организации
     [UF_PHONE] => +72222222222
     [UF_EMAIL] => email@mail.ru
-    [UF_COMMENT] => Все нормально
-)
-
-
-data:
-Array
-(
-    [UF_NAME] => Название_организации
-    [UF_PHONE] => +72222222222
-    [UF_EMAIL] => email@mail.ru
-    [UF_COMMENT] => Приемлемое качество
-)
-
-
-data:
-Array
-(
-    [UF_NAME] => Название
-    [UF_PHONE] => +71213123123
-    [UF_EMAIL] => login@mail.tut
-    [UF_COMMENT] => Очень хорошо
+    [UF_COMMENT] => 
 )
 
 

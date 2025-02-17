@@ -30,12 +30,19 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
     }
     public function addQuickOrderAction($action){
         $this->checkModules();
-        \Bitrix\Main\Diag\Debug::writeToFile(print_r($_POST,true),"data","/local/log.log");
+        
         $addResult = QuickOrderTable::add($_POST);
-        if($addResult->getId())
+        if($addResult->isSuccess())
             return json_encode(["status"=>"success"]);
         else
-            return json_encode(["status"=>"error"]);
+        {
+            $errors = $result->getErrors();
+            $message ="";
+            foreach ($errors as $error) {
+              $message .= $error->getMessage();
+            }
+            return json_encode(["status"=>"error","message"=>$message]);
+        }
     }
     private function checkModules(){
         if(!Loader::includeModule("klbr"))
@@ -65,7 +72,7 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
             else
                 $filterData[$k] = $v;
         }
-        //\Bitrix\Main\Diag\Debug::writeToFile(print_r($filterData,true),"filter","/local/debug000.log");
+        
         if($filterData['UF_NAME'])
             $mainFilter['UF_NAME'] = $filterData['UF_NAME'];
         
