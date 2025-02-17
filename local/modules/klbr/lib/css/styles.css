@@ -1,5 +1,14 @@
+.quick-order-div{
+    margin-left:auto;
+    margin-right:auto;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content: center;
+}
 .btn-quick-order{
     width:100%;
+    max-width:250px;
 }
 .modal-container{
     display:flex;
@@ -7,6 +16,10 @@
 }
 .error{
     border: 1px solid red;
+}
+.modal-input{
+    padding:7px;
+    margin:7px;
 }
 @media screen and (min-width:1200px){
     .modal-container{

@@ -1,14 +1,15 @@
 <?php
-use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\CurrentUser;
 use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Application;
-use Bitrix\Iblock\IblockTable;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Context;
 use KLBR\QuickOrderTable;
+use Bitrix\Main\Grid\Options as GridOptions;
+use Bitrix\Main\UI\PageNavigation;
+
 
 class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
 
@@ -27,10 +28,14 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
             ],
         ];
     }
-    public function addQuickOrderAction($data){
+    public function addQuickOrderAction($action){
         $this->checkModules();
-        \Bitrix\Main\Diag\Debug::writeToFile(print_r($data,true),"data","/local/log.log");
-        return json_encode(["status"=>"success"]);
+        \Bitrix\Main\Diag\Debug::writeToFile(print_r($_POST,true),"data","/local/log.log");
+        $addResult = QuickOrderTable::add($_POST);
+        if($addResult->getId())
+            return json_encode(["status"=>"success"]);
+        else
+            return json_encode(["status"=>"error"]);
     }
     private function checkModules(){
         if(!Loader::includeModule("klbr"))
@@ -86,7 +91,7 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
             $nav_params = false;
         else
             $nav_params['iNumPage'] = $nav->getCurrentPage();
-    //    \Bitrix\Main\Diag\Debug::writeToFile(print_r($mainFilter,true),"filter","/local/1.log");
+    
         $getListOptions = array(
             "select" => ['ID', "UF_EMAIL", 'UF_NAME', 'UF_PHONE',"UF_COMMENT"],
             "order" => ["ID" => "DESC"],
@@ -97,11 +102,12 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
             'count_total' => true
         );
         $rowsObj = QuickOrderTable::getList($getListOptions);
+    
         $countOrders = $rowsObj->getCount();
         $rows = $rowsObj->fetchAll();
         $nav->setRecordCount($countOrders);
         $this->arResult["NAV"] = $nav;
-
+        
         foreach($rows as $k => $row) {
             $list[] = [
                 'data' => [
@@ -112,7 +118,7 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
                     "COMMENT" => $row['UF_COMMENT'],
                 ],
             ];
-    }
+        }
     $this->arResult["ROWS"] = $list;
     $this->includeComponentTemplate();
     }
