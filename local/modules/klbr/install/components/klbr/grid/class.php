@@ -40,12 +40,13 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
     }
     public function addQuickOrderAction($action){
         $this->checkModules();
-        $data = $_POST;
+        $data = $this->xssSave( $_POST);
         $data["UF_DATE"] = new DT();
         $data["UF_STATUS"]="Новый";
         $addResult = QuickOrderTable::add($data);
         if($addResult->getId())
         {
+            $data["ID"] = $addResult->getId();
             \CEvent::Send("NEW_QUICK_ORDER","s1", $data);
         }
         return $this-> returnResult($addResult);
@@ -67,6 +68,14 @@ class QuickOrderGrid  extends \CBitrixComponent implements Controllerable {
             }
             return json_encode(["status"=>"error","message"=>$message]);
         }
+    }
+    private function xssSave($data){
+        $newData = [];
+        foreach($data as $key=>$value)
+        {
+           $newData[$key] = htmlspecialchars($value);
+        }
+        return $newData;
     }
     private function checkModules(){
         if(!Loader::includeModule("klbr"))

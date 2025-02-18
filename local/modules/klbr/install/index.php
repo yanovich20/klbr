@@ -68,10 +68,11 @@ var $MODULE_CSS;
         "
       ));
     $admin = \Bitrix\Main\UserTable::getList(["filter"=>array("LOGIN"=>"admin"),"select"=>array("ID","EMAIL")])->fetch();
+    $emailFrom = \Bitrix\Main\Config\Option::get("main","email_from");
     $arr["ACTIVE"]      = "Y";
     $arr["EVENT_NAME"]  = "NEW_QUICK_ORDER";
     $arr["LID"]         = array("s1");
-    $arr["EMAIL_FROM"]  = "admin@site.ru";
+    $arr["EMAIL_FROM"]  = $emailFrom;
     $arr["EMAIL_TO"]    = $admin["EMAIL"];
     $arr["BCC"]         = "";
     $arr["SUBJECT"]     = "Добавлен быстрый заказ #ID#";
